@@ -7,8 +7,9 @@
     "start": "node src/lite.js",
     "start:lite": "node src/lite.js",
     "start:legacy": "node src/index.js",
-    "check": "node --check src/lite.js && node --check src/index.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js && node --check browser-extension/bridge.js && node --check browser-extension/arRPC-Lite.user.js",
-    "test": "node --test"
+    "check": "node --check src/lite.js && node --check src/index.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js && node --check browser-extension/bridge.js && node --check browser-extension/arRPC-Lite.user.js && node --check scripts/prepare-lite-package.mjs",
+    "test": "node --test",
+    "prepare:lite": "node scripts/prepare-lite-package.mjs"
   },
   "repository": {
     "type": "git",
