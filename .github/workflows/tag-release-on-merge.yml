@@ -1,4 +1,4 @@
-name: Build and release after versioned PR merge
+name: Build and release after merge
 
 on:
   pull_request:
@@ -67,7 +67,7 @@ jobs:
 
   publish:
     if: ${{ github.event.pull_request.merged == true }}
-    name: Tag and publish version bump
+    name: Publish unreleased package version
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -80,29 +80,23 @@ jobs:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
 
-      - name: Check whether package version changed
+      - name: Check whether this version has already been released
         id: version
         shell: bash
         run: |
           set -euo pipefail
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
-          BASE_VERSION="$(git show HEAD^:package.json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk).on('end', () => console.log(JSON.parse(input).version))")"
-
-          if [[ "$CURRENT_VERSION" == "$BASE_VERSION" ]]; then
-            echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "Package version did not change ($CURRENT_VERSION); no release will be created."
-            exit 0
-          fi
-
           TAG="v${CURRENT_VERSION}"
-          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+
+          if git ls-remote --exit-code --tags origin "refs/tags/${CURRENT_VERSION}" >/dev/null 2>&1; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "Tag ${TAG} already exists; leaving it unchanged."
+            echo "Tag ${CURRENT_VERSION} already exists; leaving it unchanged."
             exit 0
           fi
 
           echo "release=true" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "tag=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Version ${CURRENT_VERSION} is not released yet."
 
       - name: Download platform artifacts
         if: ${{ steps.version.outputs.release == 'true' }}
@@ -115,17 +109,7 @@ jobs:
       - name: Generate SHA-256 checksums
         if: ${{ steps.version.outputs.release == 'true' }}
         working-directory: release-assets
-        run: sha256sum * > SHA256SUMS
-
-      - name: Create version tag
-        if: ${{ steps.version.outputs.release == 'true' }}
-        env:
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
-          git push origin "$RELEASE_TAG"
+        run: find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
 
       - name: Publish GitHub Release
         if: ${{ steps.version.outputs.release == 'true' }}
