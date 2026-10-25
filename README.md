@@ -1,72 +1,104 @@
- <div align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/19228318/202900211-95e8474b-edbb-4048-ba0b-a581a6d57fc4.png" width=300>
-    <img alt="arRPC" src="https://user-images.githubusercontent.com/19228318/203024061-064fc015-9096-40c3-9786-ad23d90414a6.png" width=300>
-  </picture> <br>
-  <a href="https://choosealicense.com/licenses/mit/l"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-  <a href="https://github.com/sponsors/CanadaHonk"><img alt="GitHub Sponsors" src="https://img.shields.io/github/sponsors/CanadaHonk?label=Sponsors&logo=github"></a>
-  <h3>An open implementation of Discord's local RPC servers</h3>
-  <h4>Allowing RPC where it was otherwise impossible, like Discord Web and custom clients</h4>
-</div>
+# arRPC Tray
 
-<br>
+[![Build](https://github.com/flessan/arrpc-bin/actions/workflows/build-release.yml/badge.svg)](https://github.com/flessan/arrpc-bin/actions/workflows/build-release.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-arRPC is an open source implementation of Discord's half-documented local RPC servers for their desktop client. This open source implementation purely in NodeJS allows it to be used in many places where it is otherwise impossible to do: Discord web and alternative clients like ArmCord/etc. It opens a simple bridge WebSocket server which messages the JSON of exactly what to dispatch with in the client with no extra processing needed, allowing small and simple mods or plugins. **arRPC is experimental and a work in progress, so expect bugs, etc.**
+A small system-tray companion for **arRPC**. It scans for supported games and runs a persistent Discord Web session in an Electron window that can be hidden to the tray. The goal is to make game Rich Presence easier to run without keeping the full Discord desktop application open.
 
-<br>
+> **Preview build.** Discord does not provide a public HTTP API for writing Rich Presence to a personal account. This project relies on Discord Web's internal client modules to bridge activities, so compatibility is not guaranteed and can break when Discord updates its web app. It is not an official Discord product.
 
-Rich Presence (RPC) is the name for how some apps can talk to Discord desktop on your PC via localhost servers to display detailed info about the app's state. This usually works via parts of Discord desktop natively doing things + parts of Discord web interpreting that and setting it as your status. arRPC is an open source implementation of the local RPC servers on your PC, allowing apps to talk to it thinking it was just normal Discord. It can then send that info to apps which usually don't get RPC, like Discord Web, ArmCord, etc. which can then set that as your status. This would otherwise not be possible, as web apps/browsers/etc can't just use Discord's already existing code and version.
+## Downloads
 
-- App with Discord RPC
-- ~~Discord Desktop's native server~~ arRPC
-- ~~Discord Web's setting~~ mod/plugin
+Download the latest tested build from [GitHub Releases](https://github.com/flessan/arrpc-bin/releases).
 
-<br>
+| Platform | Package | Notes |
+| --- | --- | --- |
+| Linux x86_64 | `.AppImage` | Portable build; mark it executable before launching. |
+| Windows x86_64 | Portable `.exe` | No installer required. |
+| macOS | `.dmg` / `.zip` | Builds are experimental; game-detection coverage may vary. |
 
-## Usage
+Pull request and branch builds are uploaded as temporary GitHub Actions artifacts. When a merged PR changes the version in `package.json`, GitHub Actions builds all supported platforms, then creates the matching `v*` tag and GitHub Release only after every build passes. Release assets include SHA-256 checksums. You can also push a version tag manually to run the tag-based release workflow.
 
-### Server
-Run `npx arrpc` in a terminal. Make sure you have a modern (>=18) version of [Node.js](https://nodejs.org) installed.
+## Getting started
 
-### Web
-#### No Mods
-1. Run [the arRPC server](#server)
-2. With Discord open, run the content of [`examples/bridge_mod.js`](examples/bridge_mod.js) in Console (Ctrl+Shift+I).
+1. Download the package for your operating system from [Releases](https://github.com/flessan/arrpc-bin/releases).
+2. Launch arRPC Tray. On the first launch, the embedded Discord Web window opens so you can sign in normally.
+3. Wait for Discord to finish loading. Keep arRPC Tray running.
+4. Close the window to hide it to the system tray. Closing the window does **not** quit the app.
+5. Open the tray menu to show Discord again, reload the page, toggle startup at login, open the log, or quit the app.
 
-#### Vencord
-1. Run [the arRPC server](#server)
-2. Just enable the `WebRichPresence (arRPC)` Vencord plugin!
+The Discord Web login session is stored in Electron's persistent local session. The app does not ask you to copy or paste a Discord account token.
 
-### Custom Clients
+### Linux
 
-#### ArmCord, Vesktop
-These clients have arRPC specially integrated, just enable the option in its settings! (server not required)
+For an AppImage download:
 
-#### Webcord
-1. Run [the arRPC server](#server)
-2. Disable the `Use built-in Content Security Policy` option in Advanced settings: ![image](https://user-images.githubusercontent.com/19228318/202926723-93b772fc-f37d-47d4-81fd-b11c5d4051e8.png)
-3. With Webcord open, run the content of [`examples/bridge_mod.js`](examples/bridge_mod.js) in the DevTools Console (Ctrl+Shift+I).
+```sh
+chmod +x "arRPC Tray-3.8.0-linux-x86_64.AppImage"
+./"arRPC Tray-3.8.0-linux-x86_64.AppImage"
+```
 
----
+The exact filename may change between versions. Your desktop environment must support a system tray/status notifier for the tray menu to be accessible.
 
-Then just use apps with Discord RPC like normal and they *should* work!
+### Windows
 
-<br>
+Double-click the downloaded portable `.exe`. If you launch it from PowerShell, the command looks like this:
 
-## Supported
+```powershell
+& ".\arRPC Tray-3.8.0-windows-x64.exe"
+```
 
-### Transports
-- [X] WebSocket Server
-  - [X] JSON
-  - [ ] Erlpack
-- [ ] HTTP Server
-- [X] IPC
-- [X] Process Scanning
+The actual filename depends on the release version and architecture.
 
-### Commands
-- [X] DISPATCH
-- [X] SET_ACTIVITY
-- [X] INVITE_BROWSER
-- [X] GUILD_TEMPLATE_BROWSER
-- [X] DEEP_LINK
-- [X] CONNECTIONS_CALLBACK
+## Build from source
+
+Requirements: Node.js 22 or newer and npm.
+
+```sh
+npm install
+npm run check
+npm test
+npm run start:tray
+```
+
+Create a distributable on the matching operating-system runner:
+
+```sh
+npm run dist:linux
+npm run dist:win
+npm run dist:mac
+```
+
+Electron packaging is platform-specific, so each package is built on its corresponding GitHub Actions runner. To publish a release, push a version tag after the build configuration has been validated:
+
+```sh
+git tag v3.8.0
+git push origin v3.8.0
+```
+
+## What it does
+
+- Scans running processes against Discord's detectable-game database.
+- Starts the existing arRPC IPC and WebSocket RPC services.
+- Forwards activity events to the embedded Discord Web session over a loopback-only WebSocket.
+- Provides a tray menu, persistent Discord Web session, optional startup-at-login, and a local log file.
+- Builds Linux, Windows, and macOS packages through GitHub Actions.
+
+## Limitations and privacy
+
+- **Not an official Rich Presence API.** The bridge interacts with internal Discord Web modules. Discord may change them at any time, and activity publication can stop working without notice.
+- **Push notifications are not guaranteed.** Keeping Discord Web hidden is not the same as having no active Discord session. This app does not guarantee that all notifications arrive immediately or exclusively on an Android phone.
+- **Game detection is not universal.** Only supported entries from the detectable-game database are recognized automatically. Launchers, renamed executables, and unsupported games may not appear.
+- **Discord Web is still running.** The window may be hidden, but Electron keeps the session alive to process the client-side Rich Presence updates.
+- **Network exposure is limited.** The arRPC Tray bridge listens on loopback instead of exposing its WebSocket server to the local network.
+- **Session data stays local to Electron's profile.** Keep your operating-system account protected. Use the app's tray menu to quit when you no longer need it.
+
+If Rich Presence stops updating after a Discord Web update, first try **Reload Discord** from the tray menu. If it still fails, inspect the app log and open an issue with your OS, architecture, and relevant error lines. Do not include tokens, cookies, or other authentication secrets in issue reports.
+
+## Credits
+
+arRPC Tray builds on [arRPC](https://github.com/OpenAsar/arrpc), an open implementation of Discord's local RPC servers, and retains its MIT-licensed code and detectable-game scanning approach. This fork adds a tray-oriented Electron shell and packaging workflows.
+
+- Upstream project: [OpenAsar/arRPC](https://github.com/OpenAsar/arrpc)
+- License: [MIT](LICENSE)
+
