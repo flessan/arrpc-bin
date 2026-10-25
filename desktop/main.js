@@ -136,7 +136,7 @@ function setAutoStart(enabled) {
         'Terminal=false',
         'X-GNOME-Autostart-enabled=true',
         ''
-      ].join('\\n'));
+      ].join('\n'));
     } else {
       rmSync(linuxAutostartFile, { force: true });
     }
@@ -254,7 +254,7 @@ async function startRpcService() {
 
   rpcStatus = 'running';
   refreshTrayMenu();
-  log('RPC service started. Bridge port:', process.env.ARRPC_BRIDGE_PORT);
+  log('RPC service started. Bridge port:', bridge.getPort());
 }
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
