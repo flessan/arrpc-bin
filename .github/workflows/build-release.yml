@@ -30,12 +30,17 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             build_command: dist:linux
+            artifact_path: "dist/*.AppImage"
           - os: windows-latest
             platform: windows
             build_command: dist:win
+            artifact_path: "dist/*.exe"
           - os: macos-latest
             platform: macos
             build_command: dist:mac
+            artifact_path: |
+              dist/*.dmg
+              dist/*.zip
 
     steps:
       - name: Check out repository
@@ -62,7 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: arrpc-${{ matrix.platform }}
-          path: dist/*
+          path: ${{ matrix.artifact_path }}
           if-no-files-found: error
           retention-days: 14
 
@@ -84,7 +89,7 @@ jobs:
 
       - name: Generate SHA-256 checksums
         working-directory: release-assets
-        run: sha256sum * > SHA256SUMS
+        run: find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
