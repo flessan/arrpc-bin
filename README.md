@@ -45,7 +45,7 @@ The exact filename may change between versions. Your desktop environment must su
 Double-click the downloaded portable `.exe`. If you launch it from PowerShell, the command looks like this:
 
 ```powershell
-.\'arRPC Tray 3.8.0.exe'
+& ".\arRPC Tray-3.8.0-windows-x64.exe"
 ```
 
 The actual filename depends on the release version and architecture.
