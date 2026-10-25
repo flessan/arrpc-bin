@@ -1,16 +1,14 @@
 {
   "name": "arrpc",
   "version": "3.8.0",
-  "description": "Discord RPC server with a standalone tray client",
-  "main": "desktop/main.js",
+  "description": "Lightweight Discord Rich Presence companion for the user's default browser",
+  "main": "src/lite.js",
   "scripts": {
-    "start": "node src",
-    "start:tray": "electron .",
-    "check": "node --check desktop/main.js && node --check desktop/discord-bridge.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js",
-    "test": "node --test",
-    "dist:linux": "electron-builder --linux AppImage --x64 --publish never",
-    "dist:win": "electron-builder --win portable --x64 --publish never",
-    "dist:mac": "electron-builder --mac dmg zip --x64 --arm64 --publish never"
+    "start": "node src/lite.js",
+    "start:lite": "node src/lite.js",
+    "start:legacy": "node src/index.js",
+    "check": "node --check src/lite.js && node --check src/index.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js && node --check browser-extension/bridge.js && node --check browser-extension/arRPC-Lite.user.js",
+    "test": "node --test"
   },
   "repository": {
     "type": "git",
@@ -27,49 +25,9 @@
   },
   "type": "module",
   "bin": {
-    "arrpc": "src/index.js"
+    "arrpc": "src/lite.js"
   },
-  "devDependencies": {
-    "electron": "^39.0.0",
-    "electron-builder": "^26.0.12"
-  },
-  "build": {
-    "appId": "cc.thio.arrpc",
-    "productName": "arRPC Tray",
-    "asar": true,
-    "files": [
-      "desktop/**/*",
-      "src/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Utility",
-      "syncDesktopName": true
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.utilities"
-    }
-  },
-  "desktopName": "arrpc-tray"
+  "engines": {
+    "node": ">=22"
+  }
 }
