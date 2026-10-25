@@ -99,16 +99,16 @@
     eachCandidate(assetModule, candidate => {
       if (lookupAsset || typeof candidate !== 'function') return;
       const source = candidate.toString();
-      if (source.includes('APPLICATION_ASSETS_FETCH_SUCCESS')) {
+      if (source.includes('APPLICATION_ASSETS_FETCH_SUCCESS') && source.includes('startsWith("http:")')) {
         lookupAsset = async (appId, name) => (await candidate(appId, [name]))[0];
       }
     });
 
-    const applicationModule = findModule(require, 'coverImage', '.application');
+    const applicationModule = findModule(require, 'Invalid Origin', 'coverImage', '.application');
     eachCandidate(applicationModule, candidate => {
       if (lookupApp || typeof candidate !== 'function') return;
       const source = candidate.toString();
-      if (source.includes('coverImage') && source.includes('.application')) {
+      if (source.includes('Invalid Origin') && source.includes('coverImage') && source.includes('.application')) {
         lookupApp = async appId => {
           const request = {};
           await candidate(request, appId);
