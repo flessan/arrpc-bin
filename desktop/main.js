@@ -119,7 +119,7 @@ async function injectDiscordBridge() {
   try {
     const bridgeFile = join(here, 'discord-bridge.js');
     const source = readFileSync(bridgeFile, 'utf8');
-    const bridgePort = process.env.ARRPC_BRIDGE_PORT || '1338';
+    const bridgePort = bridge?.getPort?.() ?? process.env.ARRPC_BRIDGE_PORT ?? '1338';
     await mainWindow.webContents.executeJavaScript(
       source.replaceAll('__ARRPC_BRIDGE_PORT__', bridgePort),
       true
@@ -203,14 +203,11 @@ function createDiscordWindow(showOnStart = false) {
 }
 
 async function startRpcService() {
-  process.env.ARRPC_BRIDGE_PORT = process.env.ARRPC_BRIDGE_PORT || '1338';
+  process.env.ARRPC_BRIDGE_PORT = process.env.ARRPC_BRIDGE_PORT || '0';
 
-  const [{ default: RPCServer }, bridgeModule] = await Promise.all([
-    import('../src/server.js'),
-    import('../src/bridge.js')
-  ]);
-
-  bridge = bridgeModule;
+  bridge = await import('../src/bridge.js');
+  await bridge.ready;
+  const { default: RPCServer } = await import('../src/server.js');
   rpcServer = await new RPCServer();
   rpcServer.on('activity', payload => {
     bridge.send(payload);
