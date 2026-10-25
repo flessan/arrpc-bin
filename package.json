@@ -8,9 +8,9 @@
     "start:tray": "electron .",
     "check": "node --check desktop/main.js && node --check desktop/discord-bridge.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js",
     "test": "node --test",
-    "dist:linux": "electron-builder --linux AppImage --x64",
-    "dist:win": "electron-builder --win portable --x64",
-    "dist:mac": "electron-builder --mac dmg zip --x64 --arm64"
+    "dist:linux": "electron-builder --linux AppImage --x64 --publish never",
+    "dist:win": "electron-builder --win portable --x64 --publish never",
+    "dist:mac": "electron-builder --mac dmg zip --x64 --arm64 --publish never"
   },
   "repository": {
     "type": "git",
@@ -60,7 +60,8 @@
       "target": [
         "AppImage"
       ],
-      "category": "Utility"
+      "category": "Utility",
+      "syncDesktopName": true
     },
     "mac": {
       "target": [
@@ -69,5 +70,6 @@
       ],
       "category": "public.app-category.utilities"
     }
-  }
+  },
+  "desktopName": "arrpc-tray"
 }
