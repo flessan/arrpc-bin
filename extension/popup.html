@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>arRPC Browser</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="mark" aria-hidden="true">R</span>
+      <div><h1>arRPC Browser</h1><p class="subtitle">Discord Rich Presence</p></div>
+    </header>
+    <section class="status-card" aria-live="polite">
+      <div class="status-line"><span id="status-dot" class="dot"></span><strong id="status-title">Checking helper…</strong></div>
+      <p id="status-detail">Connecting to the local arRPC helper.</p>
+      <dl>
+        <div><dt>Discord tabs</dt><dd id="tab-count">0</dd></div>
+        <div><dt>Discord bridge</dt><dd id="discord-status">Waiting</dd></div>
+      </dl>
+    </section>
+    <button type="button" id="reconnect">Reconnect helper</button>
+    <p class="footnote">Keep the Node.js helper running and Discord Web open.</p>
+    <a href="https://github.com/flessan/arrpc-bin#readme" target="_blank" rel="noreferrer">Setup guide</a>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

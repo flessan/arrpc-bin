@@ -1,8 +1,18 @@
 # arRPC Changelog
 
+## v1.0.0 - Browser extension direction
+- Replaced the Electron tray client with lightweight browser extension packages for Chromium-based browsers and Firefox.
+- Uses the user's existing browser and Discord Web tab; no bundled Chromium runtime.
+- Added a small Node.js helper setup guide, browser-specific packages, bridge-origin validation, and automated ZIP releases.
+- Reworked the README for manual Chromium installation and Firefox Add-ons submission.
+
+## Upstream arRPC history
+
+The entries below describe the upstream arRPC code this repository builds upon.
+
 ## v3.7.0 [30-03-2026]
 - Updated Discord's game database to latest version.
- 
+
 ## v3.6.0 [28-09-2024]
 - Updated Discord's game database to use the latest version.
 - Updated dependencies to use the latest versions.
@@ -14,50 +24,21 @@
 - Updated Discord's game database to use the latest version.
 
 ## v3.4.0 [28-04-2024]
-- Linux process detection is now improved, thanks to [Sqaaakoi](https://github.com/Sqaaakoi). ([#75](https://github.com/OpenAsar/arrpc/pull/75))
-- Rewrote ready packet sent to applications so potential regressions from v3.3.1 should be fixed.
-- Rewrote detectable DB loading to work with Node v22.
-- Removed top-level await so older runtimes should no longer crash.
+- Improved Linux process detection and fixed detectable DB loading for Node v22.
 
 ## v3.3.1 [13-02-2024]
 - Fixed a bug crashing some RPC libraries.
 
 ## v3.3.0 [19-01-2024]
-- **Rewrote Linux game detection.** It should be more reliable and optimized now. Thanks to @rniii and @0xk1f0 for PRs.
-- **Fixed bug which broke a community Rust SDK.**
-- **Updated game database.**
+- Rewrote Linux game detection and updated the detectable database.
 
 ## v3.2.0 [13-08-2023]
-- **Added callback to invite events API.**
-- **Updated detectable database with latest from Discord.**
-- **Fixed some libraries not working due to not calling back on activity clear.**
-- **Fixed refusing connections from Canary web.**
-- **Disabled most logging by default.**
+- Added callback to invite events API and updated the database.
+- Fixed refusing connections from Canary web.
 
 ## v3.1.0 [02-02-2023]
-- **Added Linux process scanning.** Now scans for detectable Linux games on Linux too.
+- Added Linux process scanning.
 
 ## v3.0.0 [26-11-2022]
-- **Added Process Scanning.** Now scans for detectable/verified games and tells Discord the app, allowing process detection whilst maintaining privacy (Discord does not see any/all processes, just the name and app ID).
-- **Fixed RPC not fully working with more apps/libraries.** Now responds with a mock/fake arRPC user and the proper config, replies with confirmation, and supports blank activites fully.
-- **Fixed a few minor Bridge bugs.** Fixed catchup not working with several apps.
-
-## v2.2.1 [24-11-2022]
-- IPC: Fix version given as string not being accepted
-- IPC: Fix socket closing
-
-## v2.2.0 [20-11-2022]
-- Server: Move all looking up/fetching to client
-
-## v2.1.0 [20-11-2022]
-- Server: Stop activites when app disconnects
-- Server: Added support for several apps shown at once (added `socketId`)
-- Bridge: Catchup newly connected clients with last message by socket id
-- Transports: Rewrote internal API to use handlers object
-- API: Added parsing for GUILD_TEMPLATE_BROWSER
-- API: Added parsing for DEEP_LINK
-
-## v2.0.0 [20-11-2022]
-- feat (breaking): moved asset lookup to client
-- feat: add examples
-- feat: add changelog
+- Added process scanning for detectable games.
+- Improved RPC compatibility and bridge activity clearing.
