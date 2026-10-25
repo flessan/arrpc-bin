@@ -19,6 +19,8 @@ for (const browser of ["chromium", "firefox"]) {
 test("Firefox manifest declares a stable add-on ID and background script", async () => {
   const manifest = JSON.parse(await readFile(new URL("../extension/manifest.firefox.json", import.meta.url), "utf8"));
   assert.equal(manifest.browser_specific_settings.gecko.id, "arrpc-browser@flessan.github.io");
+  assert.deepEqual(manifest.browser_specific_settings.gecko.data_collection_permissions.required, ["none"]);
+  assert.equal(manifest.version, packageJson.version);
   assert.deepEqual(manifest.background.scripts, ["background.js"]);
 });
 

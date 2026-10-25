@@ -1,5 +1,10 @@
 # arRPC Changelog
 
+## v1.0.1 - Firefox metadata and download guide
+- Added Firefox `browser_specific_settings.gecko.data_collection_permissions.required: ["none"]` for the no-data-collection declaration required by the add-on submission flow.
+- Updated the README to send users to the arRPC Browser download page rather than documenting Mozilla upload steps.
+- Synced both extension manifests and package metadata to v1.0.1.
+
 ## v1.0.0 - Browser extension direction
 - Replaced the Electron tray client with lightweight browser extension packages for Chromium-based browsers and Firefox.
 - Uses the user's existing browser and Discord Web tab; no bundled Chromium runtime.

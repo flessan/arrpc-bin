@@ -17,13 +17,13 @@
 
 The extension package contains only the extension files. It does not contain a browser engine, Electron, or a bundled copy of Discord.
 
-## Install the browser extension
+## Download extensions
 
-Download the matching ZIP from [GitHub Releases](https://github.com/flessan/arrpc-bin/releases). On an unreleased branch, GitHub Actions may also provide temporary build artifacts.
+Get the latest Chromium and Firefox packages from [arRPC Browser Downloads](https://dl.thio.cc.cd/). Choose the package for your browser. The GitHub release archive is available on the [releases page](https://github.com/flessan/arrpc-bin/releases).
 
 ### Chromium: manual installation
 
-1. Download `arrpc-chromium-v1.0.0.zip` from the release assets.
+1. Download the Chromium extension ZIP from [arRPC Browser Downloads](https://dl.thio.cc.cd/).
 2. Extract the ZIP to a normal folder. Keep that folder in place because the browser loads the extension directly from it.
 3. Open `chrome://extensions` in Chrome. For Edge, use `edge://extensions`; for Brave, use `brave://extensions`.
 4. Turn on **Developer mode**.
@@ -32,20 +32,11 @@ Download the matching ZIP from [GitHub Releases](https://github.com/flessan/arrp
 
 The extension is loaded locally, so there is no need to upload it to the Chrome Web Store for personal use. If you move or delete the extracted folder, load the extension again from its new location.
 
-### Firefox: temporary installation and AMO upload
+### Firefox
 
-For a quick local test, download and extract `arrpc-firefox-v1.0.0.zip`, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and select the extracted `manifest.json`. Temporary add-ons are removed when Firefox restarts.
+Download the Firefox package from [arRPC Browser Downloads](https://dl.thio.cc.cd/).
 
-To publish it so Firefox can install it normally:
-
-1. Sign in to the [Firefox Add-ons Developer Hub](https://addons.mozilla.org/developers/).
-2. Choose **Submit a New Add-on** and select distribution through Mozilla Add-ons.
-3. Upload the exact `arrpc-firefox-v1.0.0.zip` release asset. Do not upload the Chromium ZIP.
-4. Complete Mozilla's listing and source-review questions, including the privacy and permission explanations. The extension needs to connect to the local arRPC helper and inject a script into Discord Web.
-5. Submit it for review. Follow the Add-ons Developer Hub if Mozilla requests changes.
-6. After Mozilla signs and approves the add-on, use the published listing or signed XPI to install it in Firefox.
-
-Mozilla controls signing and review. Uploading the ZIP does not mean the add-on is immediately approved or published.
+For temporary local testing before the add-on is available through Mozilla Add-ons, extract the ZIP, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and select the extracted `manifest.json`. Firefox removes temporary add-ons when it restarts.
 
 ## Start the local game-detection helper
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "arRPC Browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Show supported running games as Discord Rich Presence in Discord Web.",
   "minimum_chrome_version": "111",
   "host_permissions": [
