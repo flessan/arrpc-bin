@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu, Tray, nativeImage, shell } from 'electron';
-import { appendFileSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
@@ -19,7 +19,8 @@ let rpcStatus = 'starting';
 let quitting = false;
 let logFile;
 
-const isAutoStartSupported = process.platform === 'win32' || process.platform === 'darwin';
+const isAutoStartSupported = ['win32', 'darwin', 'linux'].includes(process.platform);
+const linuxAutostartFile = join(app.getPath('home'), '.config', 'autostart', 'arrpc-tray.desktop');
 
 function log() {
   const line = '[arRPC Tray] ' + Array.from(arguments).map(value => {
@@ -71,7 +72,7 @@ function refreshTrayMenu() {
   if (!tray || tray.isDestroyed()) return;
 
   const isVisible = Boolean(mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible());
-  const startupEnabled = isAutoStartSupported ? Boolean(app.getLoginItemSettings().openAtLogin) : false;
+  const startupEnabled = isAutoStartSupported ? getAutoStartEnabled() : false;
   const gameLabel = currentGame
     ? 'Game: ' + currentGame.slice(0, 90)
     : 'No supported game detected';
@@ -91,11 +92,7 @@ function refreshTrayMenu() {
       checked: startupEnabled,
       enabled: isAutoStartSupported,
       click: item => {
-        app.setLoginItemSettings({
-          openAtLogin: item.checked,
-          openAsHidden: true
-        });
-        refreshTrayMenu();
+        setAutoStart(item.checked);
       }
     },
     {
@@ -109,6 +106,42 @@ function refreshTrayMenu() {
     { type: 'separator' },
     { label: 'Quit arRPC Tray', click: () => { quitting = true; app.quit(); } }
   ]));
+}
+
+function getAutoStartEnabled() {
+  if (process.platform === 'linux') return existsSync(linuxAutostartFile);
+  return Boolean(app.getLoginItemSettings().openAtLogin);
+}
+
+function quoteDesktopExec(value) {
+  return '"' + value.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/%/g, '%%') + '"';
+}
+
+function setAutoStart(enabled) {
+  if (process.platform === 'win32' || process.platform === 'darwin') {
+    app.setLoginItemSettings({ openAtLogin: enabled, openAsHidden: true });
+  } else if (process.platform === 'linux') {
+    if (enabled) {
+      const executable = process.env.APPIMAGE;
+      const command = executable
+        ? quoteDesktopExec(executable) + ' --hidden'
+        : quoteDesktopExec(process.execPath) + ' ' + quoteDesktopExec(app.getAppPath()) + ' --hidden';
+      mkdirSync(dirname(linuxAutostartFile), { recursive: true });
+      writeFileSync(linuxAutostartFile, [
+        '[Desktop Entry]',
+        'Type=Application',
+        'Name=arRPC Tray',
+        'Comment=Game Rich Presence relay for Discord Web',
+        'Exec=' + command,
+        'Terminal=false',
+        'X-GNOME-Autostart-enabled=true',
+        ''
+      ].join('\\n'));
+    } else {
+      rmSync(linuxAutostartFile, { force: true });
+    }
+  }
+  refreshTrayMenu();
 }
 
 async function injectDiscordBridge() {
@@ -239,7 +272,8 @@ if (!hasSingleInstanceLock) {
     tray.on('click', toggleDiscord);
     refreshTrayMenu();
 
-    const wasStartedAtLogin = Boolean(app.getLoginItemSettings().wasOpenedAtLogin);
+    const wasStartedAtLogin = process.argv.includes('--hidden') ||
+      (process.platform !== 'linux' && Boolean(app.getLoginItemSettings().wasOpenedAtLogin));
     try {
       await startRpcService();
     } catch (error) {
