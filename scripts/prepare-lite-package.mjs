@@ -2,7 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const root = process.cwd();
-const stage = join(root, 'dist', 'lite-package');
+const stage = join(root, '.lite-package-stage');
 
 await rm(stage, { recursive: true, force: true });
 await mkdir(stage, { recursive: true });
