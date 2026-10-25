@@ -17,7 +17,7 @@ Download the latest tested build from [GitHub Releases](https://github.com/fless
 | Windows x86_64 | Portable `.exe` | No installer required. |
 | macOS | `.dmg` / `.zip` | Builds are experimental; game-detection coverage may vary. |
 
-Pull request and branch builds are uploaded as temporary GitHub Actions artifacts. When a merged PR changes the version in `package.json`, GitHub Actions creates a matching `v*` tag automatically. That tag triggers a clean build matrix; a GitHub Release is published only after all platform builds pass. Release assets include SHA-256 checksums. You can also push a version tag manually.
+Pull request and branch builds are uploaded as temporary GitHub Actions artifacts. When a merged PR changes the version in `package.json`, GitHub Actions builds all supported platforms, then creates the matching `v*` tag and GitHub Release only after every build passes. Release assets include SHA-256 checksums. You can also push a version tag manually to run the tag-based release workflow.
 
 ## Getting started
 
