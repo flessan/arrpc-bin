@@ -20,7 +20,7 @@ let quitting = false;
 let logFile;
 
 const isAutoStartSupported = ['win32', 'darwin', 'linux'].includes(process.platform);
-const linuxAutostartFile = join(app.getPath('home'), '.config', 'autostart', 'arrpc-tray.desktop');
+let linuxAutostartFile;
 
 function log() {
   const line = '[arRPC Tray] ' + Array.from(arguments).map(value => {
@@ -266,6 +266,7 @@ if (!hasSingleInstanceLock) {
   app.whenReady().then(async () => {
     app.setAppUserModelId('cc.thio.arrpc');
     logFile = join(app.getPath('userData'), 'arrpc-tray.log');
+    linuxAutostartFile = join(app.getPath('home'), '.config', 'autostart', 'arrpc-tray.desktop');
 
     tray = new Tray(trayIcon);
     tray.setToolTip(appName);
