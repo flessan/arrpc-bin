@@ -90,14 +90,14 @@ jobs:
           fi
 
           TAG="v${CURRENT_VERSION}"
-          if git ls-remote --exit-code --tags origin "refs/tags/${CURRENT_VERSION}" >/dev/null 2>&1; then
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "Tag ${CURRENT_VERSION} already exists; leaving it unchanged."
+            echo "Tag ${TAG} already exists; leaving it unchanged."
             exit 0
           fi
 
           echo "release=true" >> "$GITHUB_OUTPUT"
-          echo "tag=${CURRENT_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Download platform artifacts
         if: ${{ steps.version.outputs.release == 'true' }}
