@@ -1,12 +1,17 @@
 {
   "manifest_version": 3,
   "name": "arRPC Browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Show supported running games as Discord Rich Presence in Discord Web.",
   "browser_specific_settings": {
     "gecko": {
       "id": "arrpc-browser@flessan.github.io",
-      "strict_min_version": "128.0"
+      "strict_min_version": "128.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
     }
   },
   "host_permissions": [

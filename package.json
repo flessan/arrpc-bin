@@ -1,6 +1,6 @@
 {
   "name": "arrpc",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Lightweight browser extension and local game-detection helper for Discord Rich Presence",
   "type": "module",
   "main": "src/index.js",
