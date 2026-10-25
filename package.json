@@ -1,6 +1,6 @@
 {
   "name": "arrpc",
-  "version": "3.7.0",
+  "version": "3.8.0",
   "description": "Discord RPC server with a standalone tray client",
   "main": "desktop/main.js",
   "scripts": {
