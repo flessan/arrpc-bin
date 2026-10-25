@@ -1,104 +1,102 @@
-# arRPC Tray
+# arRPC Browser
 
 [![Build](https://github.com/flessan/arrpc-bin/actions/workflows/build-release.yml/badge.svg)](https://github.com/flessan/arrpc-bin/actions/workflows/build-release.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A small system-tray companion for **arRPC**. It scans for supported games and runs a persistent Discord Web session in an Electron window that can be hidden to the tray. The goal is to make game Rich Presence easier to run without keeping the full Discord desktop application open.
+**arRPC Browser** connects a small browser extension to the existing arRPC game-detection helper. It uses your current browser and Discord Web tab. It does not bundle Chromium or open a separate Discord window.
 
-> **Preview build.** Discord does not provide a public HTTP API for writing Rich Presence to a personal account. This project relies on Discord Web's internal client modules to bridge activities, so compatibility is not guaranteed and can break when Discord updates its web app. It is not an official Discord product.
+> **Important:** the browser extension is lightweight, but it cannot inspect native game processes by itself. A small Node.js helper must run locally for automatic game detection. Discord Web must also be open and signed in. This project is unofficial and relies on Discord Web internals that can change without notice.
 
-## Downloads
+## Supported browsers
 
-Download the latest tested build from [GitHub Releases](https://github.com/flessan/arrpc-bin/releases).
+| Browser family | Support |
+| --- | --- |
+| Chrome and Chromium-based browsers | Current Chrome, Edge, Brave, Vivaldi, Opera, and other browsers supporting Manifest V3 content-script `MAIN` world |
+| Firefox | Firefox 128 or newer, using the Firefox-specific Manifest V3 package |
+| Safari | Not included yet. Safari requires its own packaging and compatibility work. |
 
-| Platform | Package | Notes |
-| --- | --- | --- |
-| Linux x86_64 | `.AppImage` | Portable build; mark it executable before launching. |
-| Windows x86_64 | Portable `.exe` | No installer required. |
-| macOS | `.dmg` / `.zip` | Builds are experimental; game-detection coverage may vary. |
+The extension package contains only the extension files. It does not contain a browser engine, Electron, or a bundled copy of Discord.
 
-Pull request and branch builds are uploaded as temporary GitHub Actions artifacts. When a merged PR changes the version in `package.json`, GitHub Actions builds all supported platforms, then creates the matching `v*` tag and GitHub Release only after every build passes. Release assets include SHA-256 checksums. You can also push a version tag manually to run the tag-based release workflow.
+## Install the browser extension
 
-## Getting started
+Download the matching ZIP from [GitHub Releases](https://github.com/flessan/arrpc-bin/releases). On an unreleased branch, GitHub Actions may also provide temporary build artifacts.
 
-1. Download the package for your operating system from [Releases](https://github.com/flessan/arrpc-bin/releases).
-2. Launch arRPC Tray. On the first launch, the embedded Discord Web window opens so you can sign in normally.
-3. Wait for Discord to finish loading. Keep arRPC Tray running.
-4. Close the window to hide it to the system tray. Closing the window does **not** quit the app.
-5. Open the tray menu to show Discord again, reload the page, toggle startup at login, open the log, or quit the app.
+### Chromium: manual installation
 
-The Discord Web login session is stored in Electron's persistent local session. The app does not ask you to copy or paste a Discord account token.
+1. Download `arrpc-chromium-v1.0.0.zip` from the release assets.
+2. Extract the ZIP to a normal folder. Keep that folder in place because the browser loads the extension directly from it.
+3. Open `chrome://extensions` in Chrome. For Edge, use `edge://extensions`; for Brave, use `brave://extensions`.
+4. Turn on **Developer mode**.
+5. Select **Load unpacked** and choose the extracted folder containing `manifest.json`.
+6. Open or refresh [Discord Web](https://discord.com/app) and sign in normally.
 
-### Linux
+The extension is loaded locally, so there is no need to upload it to the Chrome Web Store for personal use. If you move or delete the extracted folder, load the extension again from its new location.
 
-For an AppImage download:
+### Firefox: temporary installation and AMO upload
 
-```sh
-chmod +x "arRPC Tray-3.8.0-linux-x86_64.AppImage"
-./"arRPC Tray-3.8.0-linux-x86_64.AppImage"
-```
+For a quick local test, download and extract `arrpc-firefox-v1.0.0.zip`, open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on…**, and select the extracted `manifest.json`. Temporary add-ons are removed when Firefox restarts.
 
-The exact filename may change between versions. Your desktop environment must support a system tray/status notifier for the tray menu to be accessible.
+To publish it so Firefox can install it normally:
 
-### Windows
+1. Sign in to the [Firefox Add-ons Developer Hub](https://addons.mozilla.org/developers/).
+2. Choose **Submit a New Add-on** and select distribution through Mozilla Add-ons.
+3. Upload the exact `arrpc-firefox-v1.0.0.zip` release asset. Do not upload the Chromium ZIP.
+4. Complete Mozilla's listing and source-review questions, including the privacy and permission explanations. The extension needs to connect to the local arRPC helper and inject a script into Discord Web.
+5. Submit it for review. Follow the Add-ons Developer Hub if Mozilla requests changes.
+6. After Mozilla signs and approves the add-on, use the published listing or signed XPI to install it in Firefox.
 
-Double-click the downloaded portable `.exe`. If you launch it from PowerShell, the command looks like this:
+Mozilla controls signing and review. Uploading the ZIP does not mean the add-on is immediately approved or published.
 
-```powershell
-& ".\arRPC Tray-3.8.0-windows-x64.exe"
-```
-
-The actual filename depends on the release version and architecture.
-
-## Build from source
+## Start the local game-detection helper
 
 Requirements: Node.js 22 or newer and npm.
 
 ```sh
+git clone https://github.com/flessan/arrpc-bin.git
+cd arrpc-bin
 npm install
+npm run start:helper
+```
+
+Keep that terminal/process running while you use Rich Presence. Then open [Discord Web](https://discord.com/app), sign in, and refresh the tab after installing the extension. The helper scans supported running processes approximately every five seconds and sends game activity to the extension over a loopback-only WebSocket.
+
+The helper listens on `127.0.0.1:1337`; the normal arRPC IPC/WebSocket RPC ports remain available for compatible RPC clients. It does not listen on your LAN interface. No Discord account token or cookie needs to be copied into the helper.
+
+### Helper commands
+
+```sh
 npm run check
 npm test
-npm run start:tray
+npm run build:extensions
 ```
 
-Create a distributable on the matching operating-system runner:
+`npm run build:extensions` creates `dist/chromium/` and `dist/firefox/` unpacked extension folders. GitHub Actions packages each folder into a ZIP for release.
 
-```sh
-npm run dist:linux
-npm run dist:win
-npm run dist:mac
-```
+## How it works
 
-Electron packaging is platform-specific, so each package is built on its corresponding GitHub Actions runner. To publish a release, push a version tag after the build configuration has been validated:
+- The browser extension runs only on supported Discord Web origins: `discord.com`, `ptb.discord.com`, and `canary.discord.com`.
+- A background script connects to the helper at `ws://127.0.0.1:1337` and relays game activity to the Discord Web page.
+- The page bridge dispatches activity updates through Discord Web's internal client modules.
+- The Node.js helper uses the existing arRPC transports and detectable-game database to scan supported game processes.
 
-```sh
-git tag v3.8.0
-git push origin v3.8.0
-```
+## Troubleshooting
 
-## What it does
+**The extension says the helper is disconnected.** Start `npm run start:helper` and keep it running. If port `1337` is already occupied, inspect the helper log before stopping another process.
 
-- Scans running processes against Discord's detectable-game database.
-- Starts the existing arRPC IPC and WebSocket RPC services.
-- Forwards activity events to the embedded Discord Web session over a loopback-only WebSocket.
-- Provides a tray menu, persistent Discord Web session, optional startup-at-login, and a local log file.
-- Builds Linux, Windows, and macOS packages through GitHub Actions.
+**The helper is connected but no activity appears.** Refresh Discord Web, check that the game is in the detectable-game database, and try restarting the helper. Some launchers, custom executable names, or unsupported games may not be detected.
 
-## Limitations and privacy
+**Rich Presence stopped after Discord updated.** The extension uses undocumented Discord Web modules, so a Discord update can break the page bridge. Open an issue with your browser and OS version plus relevant logs. Do not include account tokens, cookies, or other authentication secrets.
 
-- **Not an official Rich Presence API.** The bridge interacts with internal Discord Web modules. Discord may change them at any time, and activity publication can stop working without notice.
-- **Push notifications are not guaranteed.** Keeping Discord Web hidden is not the same as having no active Discord session. This app does not guarantee that all notifications arrive immediately or exclusively on an Android phone.
-- **Game detection is not universal.** Only supported entries from the detectable-game database are recognized automatically. Launchers, renamed executables, and unsupported games may not appear.
-- **Discord Web is still running.** The window may be hidden, but Electron keeps the session alive to process the client-side Rich Presence updates.
-- **Network exposure is limited.** The arRPC Tray bridge listens on loopback instead of exposing its WebSocket server to the local network.
-- **Session data stays local to Electron's profile.** Keep your operating-system account protected. Use the app's tray menu to quit when you no longer need it.
+## Privacy and limitations
 
-If Rich Presence stops updating after a Discord Web update, first try **Reload Discord** from the tray menu. If it still fails, inspect the app log and open an issue with your OS, architecture, and relevant error lines. Do not include tokens, cookies, or other authentication secrets in issue reports.
+- This is not an official Discord product and does not use a public API for setting personal-account Rich Presence.
+- Rich Presence integration depends on private Discord Web implementation details and may stop working when Discord changes them.
+- The helper scans local process metadata to identify supported games. Activity is relayed only to the local extension connection and Discord Web.
+- The browser extension does not replace the local helper and does not guarantee that all games are detectable.
+- Safari is not supported by this release.
 
-## Credits
+## Credits and license
 
-arRPC Tray builds on [arRPC](https://github.com/OpenAsar/arrpc), an open implementation of Discord's local RPC servers, and retains its MIT-licensed code and detectable-game scanning approach. This fork adds a tray-oriented Electron shell and packaging workflows.
+This project builds on [OpenAsar/arRPC](https://github.com/OpenAsar/arrpc), an MIT-licensed implementation of Discord's local RPC interfaces and game-detection approach. See [LICENSE](LICENSE) for the license text.
 
-- Upstream project: [OpenAsar/arRPC](https://github.com/OpenAsar/arrpc)
-- License: [MIT](LICENSE)
-
+Upstream project: [OpenAsar/arRPC](https://github.com/OpenAsar/arrpc).

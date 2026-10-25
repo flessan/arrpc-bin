@@ -1,0 +1,50 @@
+{
+  "manifest_version": 3,
+  "name": "arRPC Browser",
+  "version": "1.0.0",
+  "description": "Show supported running games as Discord Rich Presence in Discord Web.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "arrpc-browser@flessan.github.io",
+      "strict_min_version": "128.0"
+    }
+  },
+  "host_permissions": [
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://discord.com/*",
+        "https://ptb.discord.com/*",
+        "https://canary.discord.com/*"
+      ],
+      "js": [
+        "discord-main.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://discord.com/*",
+        "https://ptb.discord.com/*",
+        "https://canary.discord.com/*"
+      ],
+      "js": [
+        "content-script.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "arRPC status"
+  }
+}

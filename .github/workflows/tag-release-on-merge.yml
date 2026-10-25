@@ -1,4 +1,4 @@
-name: Build and release after versioned PR merge
+name: Build and release browser extension version
 
 on:
   pull_request:
@@ -13,115 +13,82 @@ permissions:
 jobs:
   build:
     if: ${{ github.event.pull_request.merged == true }}
-    name: Build ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            build_command: dist:linux
-          - os: windows-latest
-            platform: windows
-            build_command: dist:win
-          - os: macos-latest
-            platform: macos
-            build_command: dist:mac
-
+    name: Test and package extensions
+    runs-on: ubuntu-latest
     steps:
       - name: Check out merged commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Install dependencies
+      - name: Install helper dependency
         run: npm install --no-audit --no-fund
-
       - name: Check JavaScript syntax
         run: npm run check
-
       - name: Run tests
         run: npm test
-
-      - name: Build distributable
-        run: npm run ${{ matrix.build_command }}
-
-      - name: Upload build artifact
+      - name: Build browser extensions
+        run: npm run build:extensions
+      - name: Package browser ZIPs
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          (cd dist/chromium && zip -qr "../arrpc-chromium-v${VERSION}.zip" .)
+          (cd dist/firefox && zip -qr "../arrpc-firefox-v${VERSION}.zip" .)
+      - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
-          name: arrpc-${{ matrix.platform }}
-          path: dist/*
+          name: arrpc-browser-extensions
+          path: dist/*.zip
           if-no-files-found: error
           retention-days: 14
 
   publish:
     if: ${{ github.event.pull_request.merged == true }}
-    name: Tag and publish version bump
+    name: Tag and publish release
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
       - name: Check out merged commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: 0
-
-      - name: Check whether package version changed
+      - name: Check whether this version needs a release
         id: version
         shell: bash
         run: |
           set -euo pipefail
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           BASE_VERSION="$(git show HEAD^:package.json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk).on('end', () => console.log(JSON.parse(input).version))")"
-
+          TAG="v${CURRENT_VERSION}"
           if [[ "$CURRENT_VERSION" == "$BASE_VERSION" ]]; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "Package version did not change ($CURRENT_VERSION); no release will be created."
+            echo "package version did not change ($CURRENT_VERSION); nothing to publish"
             exit 0
           fi
-
-          TAG="v${CURRENT_VERSION}"
-          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
             echo "release=false" >> "$GITHUB_OUTPUT"
-            echo "Tag ${TAG} already exists; leaving it unchanged."
+            echo "tag $TAG already exists; leaving it unchanged"
             exit 0
           fi
-
           echo "release=true" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-
-      - name: Download platform artifacts
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+      - name: Download extension packages
         if: ${{ steps.version.outputs.release == 'true' }}
         uses: actions/download-artifact@v4
         with:
-          pattern: arrpc-*
+          name: arrpc-browser-extensions
           path: release-assets
-          merge-multiple: true
-
       - name: Generate SHA-256 checksums
         if: ${{ steps.version.outputs.release == 'true' }}
         working-directory: release-assets
-        run: sha256sum * > SHA256SUMS
-
-      - name: Create version tag
-        if: ${{ steps.version.outputs.release == 'true' }}
-        env:
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "$RELEASE_TAG" -m "Release $RELEASE_TAG"
-          git push origin "$RELEASE_TAG"
-
+        run: find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
       - name: Publish GitHub Release
         if: ${{ steps.version.outputs.release == 'true' }}
         uses: softprops/action-gh-release@v2

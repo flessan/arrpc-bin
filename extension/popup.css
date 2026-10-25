@@ -1,0 +1,39 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f7f8fa;
+  color: #23272f;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; max-width: 340px; background: #f7f8fa; }
+main { padding: 18px; }
+header { display: flex; align-items: center; gap: 11px; margin-bottom: 18px; }
+.mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; background: #5865f2; color: #fff; font-weight: 800; }
+h1 { font-size: 15px; margin: 0; letter-spacing: -.2px; }
+.subtitle { margin: 3px 0 0; color: #657080; font-size: 12px; }
+.status-card { padding: 14px; border: 1px solid #e0e3e8; border-radius: 12px; background: #fff; }
+.status-line { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #9aa1ac; flex: 0 0 auto; }
+.dot.connected { background: #2caa72; }
+.dot.error { background: #d64545; }
+#status-detail { color: #657080; font-size: 12px; line-height: 1.5; margin: 9px 0 14px; }
+dl { border-top: 1px solid #edf0f3; margin: 0; padding-top: 10px; }
+dl div { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
+dt { color: #657080; }
+dd { margin: 0; font-weight: 600; }
+button { width: 100%; border: 0; border-radius: 9px; padding: 10px 12px; margin-top: 12px; background: #5865f2; color: white; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+button:hover { background: #4752c4; }
+.footnote { font-size: 11px; line-height: 1.45; color: #657080; margin: 12px 0 7px; }
+a { font-size: 12px; color: #4654d8; text-decoration: none; }
+a:hover { text-decoration: underline; }
+@media (prefers-color-scheme: dark) {
+  :root, body { background: #20232a; color: #f4f5f7; }
+  .subtitle, #status-detail, dt, .footnote { color: #aeb5c0; }
+  .status-card { background: #282c34; border-color: #3b414c; }
+  dl { border-top-color: #3b414c; }
+  a { color: #a8b0ff; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .status-card { animation: appear .18s ease-out; }
+  @keyframes appear { from { opacity: .65; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+}

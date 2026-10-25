@@ -1,4 +1,4 @@
-name: Build standalone tray client
+name: Build browser extensions
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: arrpc-build-${{ github.workflow }}-${{ github.ref }}
+  group: arrpc-browser-build-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -21,71 +21,53 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            build_command: dist:linux
-          - os: windows-latest
-            platform: windows
-            build_command: dist:win
-          - os: macos-latest
-            platform: macos
-            build_command: dist:mac
-
+    name: Test and package extensions
+    runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Install dependencies
+      - name: Install helper dependency
         run: npm install --no-audit --no-fund
-
       - name: Check JavaScript syntax
         run: npm run check
-
       - name: Run tests
         run: npm test
-
-      - name: Build distributable
-        run: npm run ${{ matrix.build_command }}
-
-      - name: Upload build artifact
+      - name: Build browser extensions
+        run: npm run build:extensions
+      - name: Package browser ZIPs
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          (cd dist/chromium && zip -qr "../arrpc-chromium-v${VERSION}.zip" .)
+          (cd dist/firefox && zip -qr "../arrpc-firefox-v${VERSION}.zip" .)
+      - name: Upload extension packages
         uses: actions/upload-artifact@v4
         with:
-          name: arrpc-${{ matrix.platform }}
-          path: dist/*
+          name: arrpc-browser-extensions
+          path: dist/*.zip
           if-no-files-found: error
           retention-days: 14
 
   release:
-    name: Publish GitHub Release
+    name: Publish tag release
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-      - name: Download all platform artifacts
+      - name: Download extension packages
         uses: actions/download-artifact@v4
         with:
-          pattern: arrpc-*
+          name: arrpc-browser-extensions
           path: release-assets
-          merge-multiple: true
-
       - name: Generate SHA-256 checksums
         working-directory: release-assets
-        run: sha256sum * > SHA256SUMS
-
+        run: find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:

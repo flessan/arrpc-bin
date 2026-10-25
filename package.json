@@ -1,75 +1,30 @@
 {
   "name": "arrpc",
-  "version": "3.8.0",
-  "description": "Discord RPC server with a standalone tray client",
-  "main": "desktop/main.js",
+  "version": "1.0.0",
+  "description": "Lightweight browser extension and local game-detection helper for Discord Rich Presence",
+  "type": "module",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node src",
-    "start:tray": "electron .",
-    "check": "node --check desktop/main.js && node --check desktop/discord-bridge.js && node --check src/server.js && node --check src/bridge.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js",
+    "start": "node src/index.js",
+    "start:helper": "node src/index.js",
+    "check": "node --check src/index.js && node --check src/server.js && node --check src/bridge.js && node --check src/bridge-origin.js && node --check src/process/index.js && node --check src/process/native/win32.js && node --check src/process/native/linux.js && node --check src/process/native/darwin.js && node --check extension/background.js && node --check extension/content-script.js && node --check extension/discord-main.js && node --check extension/popup.js && node --check scripts/build-extensions.js",
     "test": "node --test",
-    "dist:linux": "electron-builder --linux AppImage --x64 --publish never",
-    "dist:win": "electron-builder --win portable --x64 --publish never",
-    "dist:mac": "electron-builder --mac dmg zip --x64 --arm64 --publish never"
+    "build:extensions": "node scripts/build-extensions.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OpenAsar/arrpc.git"
+    "url": "https://github.com/flessan/arrpc-bin.git"
   },
-  "author": "OpenAsar",
+  "author": "OpenAsar contributors and flessan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/OpenAsar/arrpc/issues"
+    "url": "https://github.com/flessan/arrpc-bin/issues"
   },
-  "homepage": "https://github.com/OpenAsar/arrpc#readme",
+  "homepage": "https://github.com/flessan/arrpc-bin#readme",
   "dependencies": {
     "ws": "^8.18.3"
   },
-  "type": "module",
   "bin": {
     "arrpc": "src/index.js"
-  },
-  "devDependencies": {
-    "electron": "^39.0.0",
-    "electron-builder": "^26.0.12"
-  },
-  "build": {
-    "appId": "cc.thio.arrpc",
-    "productName": "arRPC Tray",
-    "asar": true,
-    "files": [
-      "desktop/**/*",
-      "src/**/*",
-      "package.json"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    "win": {
-      "target": [
-        {
-          "target": "portable",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Utility",
-      "syncDesktopName": true
-    },
-    "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.utilities"
-    }
-  },
-  "desktopName": "arrpc-tray"
+  }
 }
