@@ -1,4 +1,4 @@
-name: Build and release after merge
+name: Build and release arRPC Lite after merge
 
 on:
   pull_request:
@@ -13,26 +13,8 @@ permissions:
 jobs:
   build:
     if: ${{ github.event.pull_request.merged == true }}
-    name: Build ${{ matrix.platform }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            platform: linux
-            build_command: dist:linux
-            artifact_path: "dist/*.AppImage"
-          - os: windows-latest
-            platform: windows
-            build_command: dist:win
-            artifact_path: "dist/*.exe"
-          - os: macos-latest
-            platform: macos
-            build_command: dist:mac
-            artifact_path: |
-              dist/*.dmg
-              dist/*.zip
+    name: Test and package Lite client
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out merged commit
@@ -45,8 +27,8 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install runtime dependencies only
+        run: npm install --omit=dev --no-audit --no-fund
 
       - name: Check JavaScript syntax
         run: npm run check
@@ -54,20 +36,33 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build distributable
-        run: npm run ${{ matrix.build_command }}
+      - name: Create sub-1-MiB source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          mkdir -p dist
+          ARCHIVE="dist/arRPC-Lite-v${VERSION}.zip"
+          zip -9 -r "$ARCHIVE" README.md LICENSE package.json src browser-extension
+          BYTES="$(wc -c < "$ARCHIVE")"
+          echo "arRPC Lite archive size: $BYTES bytes"
+          if [ "$BYTES" -ge 1048576 ]; then
+            echo "Archive exceeds the 1 MiB target." >&2
+            exit 1
+          fi
+          (cd dist && sha256sum "arRPC-Lite-v${VERSION}.zip" > SHA256SUMS)
 
-      - name: Upload build artifact
+      - name: Upload Lite package
         uses: actions/upload-artifact@v4
         with:
-          name: arrpc-${{ matrix.platform }}
-          path: ${{ matrix.artifact_path }}
+          name: arrpc-lite
+          path: dist/*
           if-no-files-found: error
           retention-days: 14
 
   publish:
     if: ${{ github.event.pull_request.merged == true }}
-    name: Publish unreleased package version
+    name: Publish unreleased Lite version
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -98,18 +93,12 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "Version ${CURRENT_VERSION} is not released yet."
 
-      - name: Download platform artifacts
+      - name: Download Lite package
         if: ${{ steps.version.outputs.release == 'true' }}
         uses: actions/download-artifact@v4
         with:
-          pattern: arrpc-*
+          name: arrpc-lite
           path: release-assets
-          merge-multiple: true
-
-      - name: Generate SHA-256 checksums
-        if: ${{ steps.version.outputs.release == 'true' }}
-        working-directory: release-assets
-        run: find . -maxdepth 1 -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 -r sha256sum > SHA256SUMS
 
       - name: Publish GitHub Release
         if: ${{ steps.version.outputs.release == 'true' }}
