@@ -43,7 +43,8 @@ jobs:
           VERSION="$(node -p "require('./package.json').version")"
           mkdir -p dist
           ARCHIVE="dist/arRPC-Lite-v${VERSION}.zip"
-          zip -9 -r "$ARCHIVE" README.md LICENSE package.json src browser-extension
+          node scripts/prepare-lite-package.mjs
+          (cd dist/lite-package && zip -9 -r "../arRPC-Lite-v${VERSION}.zip" .)
           BYTES="$(wc -c < "$ARCHIVE")"
           echo "arRPC Lite archive size: $BYTES bytes"
           if [ "$BYTES" -ge 1048576 ]; then
