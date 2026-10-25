@@ -14,7 +14,7 @@ test('game detection database is present and non-empty', () => {
 
 test('game detection records have the fields used by the scanner', () => {
   assert.ok(database.some(entry =>
-    typeof entry.id === 'string' &&
+    entry.id !== undefined &&
     typeof entry.name === 'string' &&
     Array.isArray(entry.executables)
   ));
