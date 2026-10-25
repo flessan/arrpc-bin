@@ -1,0 +1,49 @@
+name: Tag versioned releases after merge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  tag-release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out merge commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Create a version tag when package.json version changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_VERSION="$(node -p "require('./package.json').version")"
+          BASE_VERSION="$(git show HEAD^:package.json | node -e "let input=''; process.stdin.on('data', chunk => input += chunk).on('end', () => console.log(JSON.parse(input).version))")"
+
+          if [[ "$CURRENT_VERSION" == "$BASE_VERSION" ]]; then
+            echo "No package version change ($CURRENT_VERSION); no tag will be created."
+            exit 0
+          fi
+
+          TAG="v${CURRENT_VERSION}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${CURRENT_VERSION}" >/dev/null 2>&1; then
+            echo "Tag ${CURRENT_VERSION} already exists; leaving it unchanged."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          echo "Created ${CURRENT_VERSION}; the build-release workflow will package the release assets."
