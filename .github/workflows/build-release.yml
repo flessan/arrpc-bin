@@ -50,13 +50,14 @@ jobs:
           mkdir -p dist
           ARCHIVE="dist/arRPC-Lite-v${VERSION}.zip"
           node scripts/prepare-lite-package.mjs
-          (cd dist/lite-package && zip -9 -r "../arRPC-Lite-v${VERSION}.zip" .)
+          (cd .lite-package-stage && zip -9 -r "$GITHUB_WORKSPACE/$ARCHIVE" .)
           BYTES="$(wc -c < "$ARCHIVE")"
           echo "arRPC Lite archive size: $BYTES bytes"
           if [ "$BYTES" -ge 1048576 ]; then
             echo "Archive exceeds the 1 MiB target." >&2
             exit 1
           fi
+          rm -rf .lite-package-stage
           (cd dist && sha256sum "arRPC-Lite-v${VERSION}.zip" > SHA256SUMS)
 
       - name: Upload Lite package
