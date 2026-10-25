@@ -53,6 +53,28 @@ Then just use apps with Discord RPC like normal and they *should* work!
 
 <br>
 
+## Standalone Tray Client (Preview)
+
+This repository includes a portable Electron tray client that runs the game detector and an embedded Discord Web session. The Discord window is shown for login on a normal launch; closing it hides the window while the RPC service continues in the system tray. The Discord Web session is stored locally by Electron.
+
+### Local development
+
+```sh
+npm install
+npm run start:tray
+```
+
+### Downloads
+
+The `Build standalone tray client` GitHub Actions workflow builds Linux AppImage, Windows portable EXE, and macOS DMG/ZIP artifacts. Branch and pull request builds upload temporary artifacts. Pushing a version tag such as `v3.8.0` runs the full build matrix first and then publishes a GitHub Release with SHA-256 checksums.
+
+### Important limitations
+
+- Rich Presence integration uses Discord Web internal modules, not a public write-status API. Discord updates may break this integration, so it is experimental and unsupported by Discord.
+- The tray app does not use an account token or implement a self-bot API client. Login happens in the embedded Discord Web page.
+- Running Discord Web in the background does not guarantee Android push notifications will arrive immediately. This behavior must be tested against Discord's own active-session notification rules.
+- Automatic process detection currently uses Discord's detectable-game database; it does not identify every game or launcher.
+
 ## Supported
 
 ### Transports
